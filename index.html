@@ -112,6 +112,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
         :root {
@@ -887,9 +888,34 @@
         document.querySelectorAll('.faq-item').forEach(item => { item.addEventListener('click', () => item.classList.toggle('active')); });
 
         // Form Submission
-        function handleSubmit(e) { e.preventDefault(); alert('Thank you for your message! We will get back to you soon. You can also DM us on Instagram for faster response.'); document.getElementById('contactForm').reset(); analytics.logEvent('contact_form_submit', { form_location: 'contact_page' }); setTimeout(() => window.open('https://www.instagram.com/nexoraugcc?igsh=MXQ5aGk3a3dhdWdndg==', '_blank'), 1000); }
-
-        // Parallax Effect
+function handleSubmit(e) {
+    e.preventDefault();
+    
+    // Firestore database reference
+    const db = firebase.firestore();
+    
+    // Message save karo
+    db.collection('messages').add({
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        message: document.getElementById('message').value,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        alert('✅ Thank you! Message saved successfully. We will contact you soon.');
+        document.getElementById('contactForm').reset();
+        
+        // Analytics track
+        analytics.logEvent('contact_form_submit', { 
+            method: 'firebase_firestore',
+            status: 'success'
+        });
+    })
+    .catch((error) => {
+        console.error("Error saving message: ", error);
+        alert('❌ Kuch error aaya. Please refresh page ya humein Instagram pe DM karo.');
+    });
+}        // Parallax Effect
         document.addEventListener('mousemove', (e) => {
             const shapes = document.querySelectorAll('.shape');
             const x = e.clientX / window.innerWidth; const y = e.clientY / window.innerHeight;
